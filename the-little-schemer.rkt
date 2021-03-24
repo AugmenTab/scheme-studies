@@ -146,3 +146,164 @@
                 (cond
                     ((eq? (car lat) old) (cons new (multisubst new old (cdr lat))))
                     (else (cons (car lat) (multisubst new old (cdr lat)))))))))
+
+;;--------------------------------------------------------------------------------------------------
+
+; Chapter 4: Numbers Games
+
+; o+ takes two numbers as arguments, and reduces the second until it hits zero. It adds one to the 
+; first number as many times as it reduced the second one in order to reach zero, thus adding the 
+; two numbers together.
+(define o+
+    (lambda (n m)
+        (cond
+            ((zero? m) n)
+            (else (add1 (o+ n (sub1 m)))))))
+
+; o- takes two numbers as arguments, and reduces the second until it hits zero. It subtracts one 
+; from the first number as many times as it did to cause the second one to reach zero, thus 
+; subtracting the second number from the first one.
+(define o-
+    (lambda (n m)
+        (cond
+            ((zero? m) n)
+            (else (sub1 (o- n (sub1 m)))))))
+
+; addtup builds a number by totaling all the numbers in a tup.
+(define addtup
+    (lambda (tup)
+        (cond
+            ((null? tup) 0)
+            (else o+ (car tup) (addtup (cdr tup))))))
+
+; o* takes two numbers as arguments, and reduces the second until it hits zero. It adds the first 
+; number to the first number as many times as it reduced the second one in order to reach zero, thus
+; multiplying the two numbers together.
+(define o*
+    (lambda (n m)
+        (cond
+            ((zero? m) 0)
+            (else (o+ n (o* n (sub1 m)))))))
+
+; tup+ takes two tups as arguments, and adds the first number of tup1 to the first number of tup2. 
+; Then, it adds the second number of tup1 to the second number of tup2, and so on, building a tup of
+; the answers, for tups of the same length.
+(define tup+
+    (lambda (tup1 tup2)
+        (cond
+            ((null? tup1) tup2) 
+            ((null? tup2) tup1)
+            (else (cons (o+ (car tup1) (car tup2)) (tup+ (cdr tup1) (cdr tup2)))))))
+
+; o> takes two numbers as arguments, and subtracts one from each of them until one equals zero. If 
+; the first number is equal to zero, o> is false. If the second number is equal to zero, o> is true.
+(define o>
+    (lambda (n m)
+        (cond
+            ((zero? n) #f)
+            ((zero? m) #t)
+            (else (o> (sub1 n) (sub1 m))))))
+
+; o< takes two numbers as arguments, and subtracts one from each of them until one equals zero. If 
+; the second number is equal to zero, o< is false. If the first number is equal to zero, o< is true.
+(define o<
+    (lambda (n m)
+        (cond
+            ((zero? m) #f)
+            ((zero? n) #t)
+            (else (o< (sub1 n) (sub1 m))))))
+
+; o= takes two numbers as arguments, and checks if either o> or o< is true when passed the two 
+; arguments. If neither comes back true, then o= is true.
+(define o=
+    (lambda (n m)
+        (cond
+            ((o> n m) #f)
+            ((o< n m) #f)
+            (else #t))))  ; maybe (cond (not (or (((o> n m) #f) ((o< n m) #f)))))?
+
+; o^ takes two numbers as arguments, and reduces the second until it hits zero. If multiplies the 
+; first number by the first number as many times as it reduced the second one in order to reach 
+; zero, thus raising the first number to the power of the second number.
+(define o^
+    (lambda (n m)
+        (cond
+            ((zero? m) 1)
+            (else (o* n (o^ n (sub1 m)))))))
+
+; o/ takes two numbers as arguments, and checks how many times the second number fits into the first
+; number, thus dividing the first number by the second number and providing the quotient.
+(define o/
+    (lambda (n m)
+        (cond
+            ((o< n m) 0)
+            (else (add1 (o/ (o- n m) m))))))
+
+; length takes a list as its argument, and counts the number of elements in that list.
+(define length
+    (lambda (lat)
+        (cond
+            ((null? lat) 0)
+            (else (add1 (length (cdr lat)))))))
+
+; pick takes in a number and a list as its arguments, and provides the member of that list that 
+; appears in the position of the first argument.
+(define pick
+    (lambda (n lat)
+        (cond
+            ((zero? (sub1 n)) (car lat))
+            (else (pick (sub1 n) (cdr lat))))))
+
+; rempick takes in a number and a list as its arguments, and provides the list with the member of 
+; that list that appears in the position of the first argument removed.
+(define rempick
+    (lambda (n lat)
+        (cond
+            ((one? n) (cdr lat))
+            (else (cons (car lat) (rempick (sub1 n) (cdr lat)))))))
+
+; no-nums takes a list as its argument, which provides the original list with all of the numbers 
+; removed.
+(define no-nums
+    (lambda (lat)
+        (cond
+            ((null? lat) (quote()))
+            (else
+                (cond
+                    ((number? (car lat)) (no-nums (cdr lat)))
+                    (else (cons (car lat) (no-nums (cdr lat)))))))))
+
+; all-nums takes a list as its argument, and creates a tup by extracting all of the numbers from the
+; original list.
+(define all-nums
+    (lambda (lat)
+        (cond
+            ((null? lat) (quote ()))
+            (else
+                (cond
+                    ((number? (car lat)) (cons (car lat) (all-nums (cdr lat))))
+                    (else (all-nums (cdr lat))))))))
+
+; eqan? takes in two atoms, and checks if they are the same atom.
+(define eqan?
+    (lambda (a1 a2)
+        (cond
+            ((and (number? a1) (number? a2)) (o= a1 a2))
+            ((or (number? a1) (number? a2)) #f)
+            (else (eq? a1 a2)))))
+
+; occur takes in an atom and a list as its arguments, and counts the number of times that atom 
+; appears in the list.
+(define occur
+    (lambda (a lat)
+        (cond
+            ((null? lat) 0)
+            (else
+                (cond
+                    ((eq? (car lat) a) (add1 (occur a (cdr lat))))
+                    (else (occur a (cdr lat))))))))
+
+; one? takes a number as its argument, and checks if it is equal to zero if it is reduced by one.
+(define one?
+    (lambda (n)
+        (o= n 1)))
