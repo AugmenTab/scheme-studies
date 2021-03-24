@@ -1,6 +1,6 @@
 # scheme-studies
 
-A repository for working through The Little Schemer series.
+A repository for working through The Little Schemer series, by Daniel P. Friedman and friends.
 
 My aim with reading these books is not necessarily to learn Scheme, though I imagine that will at least partially come as a beneficial side-effect. My primary reason for studying these books is to improve my understanding of the fundamentals of functional programming, and more specifically, recursion, to aid in my efforts to learn Haskell and Clojure.
 
