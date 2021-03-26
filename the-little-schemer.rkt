@@ -34,13 +34,13 @@
 
 ; rember looks at each S-expression in a list, in turn, and compares it to the S-expression 
 ; provided. The first time it discovers an S-expression in that list that matches the provided 
-; S-expression, it removes that S-expression from the list.
+; S-expression, it removes that S-expression from the list. Simplified in chapter 5.
 (define rember
-    (lambda (a lat)
+    (lambda (s l)
         (cond
-            ((null? lat) (quote ()))
-            ((eq? (car lat) a) (cdr lat))
-            (else (cons (car lat) (rember a (cdr lat)))))))
+            ((null? l) (quote ()))
+            ((equal? (car l) s) (cdr l))
+            (else (cons (car l) (rember s (cdr l)))))))
 
 ; firsts looks at a list of lists of S-expressions, and builds a new list containing only the first 
 ; S-expression from each list in the original list.
@@ -307,3 +307,94 @@
 (define one?
     (lambda (n)
         (o= n 1)))
+
+;;--------------------------------------------------------------------------------------------------
+
+; Chapter 5: *Oh My Gawd*: It's Full of Stars
+
+; rember* works exactly like rember, except that it recurs down every list that is within the list 
+; l.
+(define rember*
+    (lambda (a l)
+        (cond
+            ((null? l) (quote ())
+            ((atom? a) (car l)
+            (cond
+                ((eq? (car l) a) (rember* a (cdr l)))
+                (else (cons (car l) (rember* a (cdr l)))))))
+            (else (cons (rember* a (car l)) (rember* a (cdr l)))))))
+
+; insertR* works exactly like insertR, except that it recurs down every list that is within the list
+; l.
+(define insertR*
+    (lambda (new old l)
+        (cond
+            ((null? l) (quote ()))
+            ((atom? (car l)) (cond
+                ((eq? (car l) old) (cons old (cons new) (insertR* new old (cdr l)))
+                (else (cons (car l) (insertR* new old (cdr l)))))))
+            (else (cons (insertR* new old (car l)) (insertR* new old (cdr l)))))))
+
+; occur* works exactly like occur, except that it recurs down every list that is within the list l.
+(define occur*
+    (lambda (a l)
+        (cond
+            ((null? l) 0)
+            ((atom? (car l)) (cond
+                ((eq? (car l) a) (add1 (occur* a (cdr l))))
+                (else (occur* a (cdr l)))))
+            (else (o+ (occur* a (car l)) (occur* a (cdr l)))))))
+
+; subst* works exactly like subst, except that it recurs down every list that is within the list l.
+(define subst*
+    (lambda (new old l)
+        (cond
+            ((null? l) (quote ()))
+            ((atom? (car l)) (cond
+                ((eq? (car l) old) (cons new (subst* new old (cdr l))))
+                (else (cons (car l) subst* new old (cdr l)))))
+            (else (cons (subst* new old (car l)) (subst* new old (cdr l)))))))
+
+; insertL* works exactly like insertL, except that it recurs down every list that is within the list
+; l.
+(define insertL*
+    (lambda (new old l)
+        (cond
+            ((null? l) (quote ()))
+            ((atom? (car l)) (cond
+                ((eq? (car l) old) (cons new (cons old (insertL* new old (cdr l)))))
+                (else (cons (car l) (insertL* new old (cdr l)))))
+            (else (cons (insertL* new old (car l)) (insertL* new old (cdr l)))))))
+
+; member* works exactly like member, except that it recurs down every list that is within the list 
+; l.
+(define member*
+    (lambda (a l)
+        (cond
+            ((null? l) #f)
+            ((atom? (car l)) (or (eq? (car l) a) (member* a (cdr l))))
+            (else (or (member* a (car l)) (member* a (cdr l)))))))
+
+; leftmost finds the leftmost atom in a non-empty list of S-expressions that does not contain the 
+; empty list.
+(define leftmost
+    (lambda (l)
+        (cond
+            ((atom? (car l) (car l))
+            (else (leftmost (car l)))))))
+
+; eqlist? checks if the two lists passed as arguments are equal to one another.
+(define eqlist?
+    (lambda (l1 l2)
+        (cond
+            ((and (null? l1) (null? l2)) #t)
+            ((or (null? l1) (null? l2)) #f)
+            (else (and (equal? (car l1) (car l2)) (eqlist? (cdr l1) (cdr l2)))))))
+
+; equal? checks if the two S-expressions pass as arguments are equal to one another.
+(define equal?
+    (lambda (s1 s2)
+        (cond
+            ((and (atom? s1) (atom? s2)) (eqan? s1 s2))
+            ((or (atom? s1) (atom? s2)) #f)
+            (else (eqlist? s1 s2)))))
