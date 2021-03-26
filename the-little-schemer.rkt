@@ -398,3 +398,80 @@
             ((and (atom? s1) (atom? s2)) (eqan? s1 s2))
             ((or (atom? s1) (atom? s2)) #f)
             (else (eqlist? s1 s2)))))
+
+;;--------------------------------------------------------------------------------------------------
+
+; Chapter 6: Shadows
+
+; numbered? determines whether a representation of an arithmetic expression contains only numbers 
+; besides the o+, ox, and o^.
+(define numbered?
+    (lambda (aexp)
+        (cond
+            ((atom? aexp) (numbered? aexp))
+            (else (and (numbered? (car aexp)) (numbered? (car (cdr (cdr aexp)))))))))
+
+; value interprets and evaluates an arithmetic expression.
+(define value
+    (lambda (nexp)
+        (cond
+            ((atom? nexp) nexp)
+            ((eq? (car (cdr nexp)) (quote o+))
+                (o+ (value (car nexp)) (value (car (cdr (cdr nexp))))))
+            ((eq? (car (cdr nexp)) (quote o*))
+                (o* (value (car nexp)) (value (car (cdr (cdr nexp))))))
+            (else (o^ (value (car nexp)) (value (car (cdr (cdr nexp)))))))))
+
+; value-prefix works exactly like value, except that it interprets and evaluates arithmetic 
+; expressions that are written in prefix notation.
+(define value-prefix
+    (lambda (nexp)
+        (cond
+            ((atom? nexp) nexp)
+            ((eq? (operator nexp) (quote o+)) 
+                (o+ (value-prefix (1st-sub-exp nexp)) (value-prefix (2nd-sub-exp nexp))))
+            ((eq? (operator nexp) (quote o*))
+                (o* (value-prefix (1st-sub-exp nexp)) (value-prefix (2nd-sub-exp nexp))))
+            (else (o^ (value-prefix (1st-sub-exp nexp)) (value-prefix (2nd-sub-exp nexp)))))))
+
+; 1st-sub-exp provides the first number from an arithmetic expression.
+(define 1st-sub-exp
+    (lambda (aexp)
+        (car aexp)))
+
+; 2nd-sub-exp provides the second number from an arithmetic expression.
+(define 2nd-sub-exp
+    (lambda (aexp)
+        (car (cdr (cdr aexp)))))
+
+; operator provides the operator for an arithmetic expression.
+(define operator
+    (lambda (aexp)
+        (car (cdr aexp))))
+
+; sero? tests if a value passed into it is 0, using a list of empty lists in place of Arabic 
+; characters to represent numbers.
+(define sero?
+    (lambda (n)
+        (null? n)))
+
+; edd1 adds 1 to a list provided, using a list of empty lists in place of Arabic characters to 
+; represent numbers.
+(define edd1
+    (lambda (n)
+        (cons (quote ()) n)))
+
+; zub1 subtracts 1 from a list provided, using a list of empty lists in place of Arabic characters 
+; to represent numbers.
+(define zub1
+    (lambda (n)
+        (cdr n)))
+
+; lo+ works exactly like o+ when using a list of empty lists in place of Arabic characters to 
+; represent numbers.
+(define lo+
+    (lambda (n m)
+        (cond
+            ((sero? m) n)
+            (else (edd1 (lo+ n (zub1 m)))))))
+            
