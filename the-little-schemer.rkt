@@ -474,4 +474,128 @@
         (cond
             ((sero? m) n)
             (else (edd1 (lo+ n (zub1 m)))))))
-            
+
+;;--------------------------------------------------------------------------------------------------
+
+; Chapter 7: Friends and Relations
+
+; set? determines if the lat passed as an argument is a set: a list of unique S-expressions.
+(define set?
+    (lambda (lat)
+        (cond
+            ((null? lat) #t)
+            ((member? (car lat) (cdr lat)) #f)
+            (else (set? (cdr lat))))))
+
+; makeset creates a set from a lat by remembering to cons the first atom in the lat onto the result 
+; of the natural recursion, after removing all occurrences of the first atom from the rest of the 
+; lat.
+(define makeset
+    (lambda (lat)
+        (cond
+            ((null? lat) (quote ()))
+            (else (cons (car lat) (makeset (multirember (car lat) (cdr lat))))))))
+
+; subset? determines if the second set passed to it is a subset (a set where every S-expression 
+; within it is also within the first set) of the first set passed to it.
+(define subset?
+    (lambda (set1 set2)
+        (cond
+            ((null? set1) #t)
+            (else (and (member? (car set1) set2) (subset? (cdr set1) set2))))))
+
+; eqset? determines if two sets are equal to one another, by checking if both sets are subsets of 
+; each other.
+(define eqset?
+    (lambda (set1 set2)
+        (and (subset? set1 set2) (subset? set2 set1))))
+
+; intersect provides all of the elements that are present in both of the sets provided as arguments. 
+(define intersect
+    (lambda (set1 set2)
+        (cond
+            ((null? set1) (quote ()))
+            ((member? (car set1) set2) (cons (car set1) (intersect (cdr set1) set2)))
+            (else (intersect (cdr set1) set2)))))
+
+; union creates a new set containing all of the distinct elements from the two sets passed to it as 
+; arguments.
+(define union
+    (lambda (set1 set2)
+        (cond
+            ((null? set1) set2)
+            ((member? (car set1) set2) (union (cdr set1) set2))
+            (else (cons (car set1) (union (cdr set1) set2))))))
+
+; difference returns all of the atoms in set1 that are not in set2.
+(define difference
+    (lambda set1 set2)
+        (cond
+            ((null? set1) (quote ()))
+            ((member? (car set1) set2) (difference (cdr set1) set2))
+            (else (cons (car set1) (difference (cdr set1) set2)))))
+
+; intersectall works exactly like intersect, except that it finds the intersection of any number of 
+; sets within a list provided as its argument.
+(define intersectall
+    (lambda (l-set)
+        (cond
+            ((null? (cdr l-set)) (car l-set))
+            (else (intersect (car l-set) (intersectall (cdr l-set)))))))
+
+; a-pair? determines if a provided list is a pair (a list with only two S-expressions).
+(define a-pair?
+    (lambda (x)
+        (cond
+            ((atom? x) #f)
+            ((null? x) #f)
+            ((null? (cdr x)) #f)
+            ((null? (cdr (cdr x))) #t)
+            (else #f))))
+
+; first provides the first item in a list or pair.
+(define first
+    (lambda (p)
+        (car p)))
+
+; second provides the second item in a list or pair.
+(define second
+    (lambda (p)
+        (car (cdr p))))
+
+; build creates a pair from two S-expressions provided as arguments.
+(define build
+    (lambda (s1 s2)
+        (cons s1 (cons s2 (quote ())))))
+
+; third provides the third item in a list.
+(define third
+    (lambda (l)
+        (car (car (cdr l)))))
+
+; fun? determines if something is a function.
+(define fun?
+    (lambda (rel)
+        (set? (firsts rel))))
+
+; revrel reverses a relation.
+(define revrel
+    (lambda (rel)
+        (cond
+            ((null? rel) (quote ()))
+            (else (cons (revpair (car rel)) (revrel (cdr rel)))))))
+
+; revpair switches the items in a pair.
+(define revpair
+    (lambda (pair)
+        (build (second pair) (first pair))))
+
+; fullfun? determines if the seconds of a list of pairs is a set.
+(define fullfun?
+    (lambda (fun)
+        (set? (seconds fun))))
+
+; one-to-one? works exactly like fullfun?.
+(define one-to-one?
+    (lambda (fun)
+        (fun? (revrel fun))))
