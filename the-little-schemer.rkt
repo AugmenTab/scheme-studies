@@ -863,4 +863,204 @@
 
 ; Chapter 10: What Is the Value of All of This?
 
-; 
+; lookup-in-entry
+(define lookup-in-entry
+    (lambda (name entry entry-f) (lookup-in-entry-help name (first entry) (second entry) entry-f)))
+
+; lookup-in-entry-help
+(define lookup-in-entry-help
+    (lambda (name names values entry-f)
+        (cond
+            ((null? names) (entry-if name))
+            ((eq? (car names) name) (car values))
+            (else (lookup-in-entry-help name (cdr names) (cdr values) entry-f)))))
+
+; lookup-in-table
+(define lookup-in-table
+    (lambda (name table table-f)
+        (cond
+            ((null? table) (table-f name))
+            (else (lookup-in-entry name (car table)
+                (lambda (name) (lookup-in-table name (cdr table) table-f)))))))
+
+; expression-to-action produces the correct action (or function) for each possible S-expression.
+(define expression-to-action
+    (lambda (e)
+        (cond
+            ((atom? e) (atom-to-action e))
+            (else (list-to-action e)))))
+
+; atom-to-action
+(define atom-to-action
+    (lambda (e)
+        (cond
+            ((number? e) *const)
+            ((eq? e #t) *const)
+            ((eq? e #f) *const)
+            ((eq? e (quote cons)) *const)
+            ((eq? e (quote car)) *const)
+            ((eq? e (quote cdr)) *const)
+            ((eq? e (quote null?)) *const)
+            ((eq? e (quote eq?)) *const)
+            ((eq? e (quote atom?)) *const)
+            ((eq? e (quote zero?)) *const)
+            ((eq? e (quote add1)) *const)
+            ((eq? e (quote sub1)) *const)
+            ((eq? e (quote number?)) *const)
+            (else *identifier)))
+
+; list-to-action
+(define list-to-action
+    (lambda (e)
+        (cond
+            ((atom? (car e)) (cond
+                ((eq? (car e) (quote quote)) *quote)
+                ((eq? (car e) (quote lambda)) *lambda)
+                ((eq? (car e) (quote cond)) *cond)
+                (else *application)))
+            (else *application))))
+
+; value-e works exactly like value, but it uses expression-to-action.
+(define value-e
+    (lambda (e)
+        (meaning e (quote ()))))
+
+; meaning
+(define meaning
+    (lambda (e table)
+        ((expression-to-action e) e table)))
+
+; *const
+(define *const
+    (lambda (e table)
+        (cond
+            ((number? e) e)
+            ((eq? e #t) #t)
+            ((eq? e #f) #f)
+            (else (build (quote primitive) e)))))
+
+; *quote
+(define *quote
+    (lambda (e table)
+        (text-of e)))
+
+; text-of second
+(define text-of second)
+
+; *identifier
+(define *identifier
+    (lambda (e table)
+        (lookup-in-table e table initial-table)))
+
+; initial-table
+(define initial-table
+    (lambda (name)
+        (car (quote ()))))
+
+; *lambda
+(define *lambda
+    (lambda (e table)
+        (build (quote non-primitive) (cons table (cdr e)))))
+
+; table-of
+(define table-of first)
+
+; formals-of
+(define formals-of second)
+
+; body-of
+(define body-of third)
+
+; evcon
+(define evcon
+    (lambda (lines table)
+        (cond
+            ((else? (question-of (car lines))) (meaning (answer-of (car lines)) table))
+            ((meaning (answer-of (car lines)) table) (meaning (answer-of (car lines)) table))
+            (else (evcon (cdr lines) table)))))
+
+; else?
+(define else?
+    (lambda (x)
+        (cond
+            ((atom? x) (eq? x (quote else)))
+            (else #f))))
+
+; question-of
+(define question-of first)
+
+; answer-of
+(define answer-of second)
+
+; cond*
+(define cond*
+    (lambda (e table)
+        (evcon (cond-lines-of e) table)))
+
+; cond-lines-of
+(define cond-lines-of cdr)
+
+; evlis
+(define evlis
+    (lambda (args table)
+        (cond
+            ((null? args) (quote ()))
+            (else (cons (meaning (car args) table) (evlis (cdr args) table))))))
+
+; *application
+(define *application
+    (lambda (e table)
+        (apply (meaning (function-of e) table) (evlis (arguments-of e) table))))
+
+; function-of
+(define function-of car)
+
+; arguments-of
+(define arguments-of cdr)
+
+; primitive?
+(define primitive?
+    (lambda (l)
+        (eq? (first l) (quote primitive))))
+
+; non-primitive?
+(define non-primitive?
+    (lambda (l)
+        (eq? (first l) (quote non-primitive))))
+
+; apply
+(define apply
+    (lambda (fun vals)
+        (cond
+            ((primitive? fun) (apply-primitive (second fun) vals))
+            ((non-primitive? fun) (apply-closure (second fun) vals)))))
+
+; apply-primitive
+(define apply-primitive
+    (lambda (name vals)
+        (cond
+            ((eq? name (quote cons)) (cons (first vals) (second vals)))
+            ((eq? name (quote car)) (car (first vals)))
+            ((eq? name (quote cdr)) (cdr (first vals)))
+            ((eq? name (quote null?)) (null? (first vals)))
+            ((eq? name (quote eq?)) (eq? (first vals) (second vals)))
+            ((eq? name (quote atom?)) (:atom? (first vals)))
+            ((eq? name (quote zero?)) (zero? (first vals)))
+            ((eq? name (quote add1)) (add1 (first vals)))
+            ((eq? name (quote sub1)) (sub1 (first vals)))
+            ((eq? name (quote number?)) (number? (first vals))))))
+
+; :atom?
+(define :atom?
+    (lambda (x)
+        (cond
+            ((atom? x) #t)
+            ((null? x) #f)
+            ((eq? (car x) (quote primitive)) #t)
+            ((eq? (car x) (quote non-primitive)) #t)
+            (else #f))))
+
+; apply-closure
+(define apply-closure
+    (lambda (closure vals)
+        (meaning (body-of closure) (extend-table (new-entry (formals-of closure) vals) (table-of closure)))))
