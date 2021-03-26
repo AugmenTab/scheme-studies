@@ -599,3 +599,196 @@
 (define one-to-one?
     (lambda (fun)
         (fun? (revrel fun))))
+
+;;--------------------------------------------------------------------------------------------------
+
+; Chapter 8: Lambda the Ultimate
+
+; rember-f takes a test function that returns a boolean, an atom, and a list as arguments, and 
+; removes the atom a from the list l if the function test? returns true.
+(define rember-f
+    (lambda (test?)
+        (lambda (a l)
+            (cond
+                ((null? l) (quote ()))
+                ((test? (car l) a) (cdr l))
+                (else (cons (car l) ((rember-f test?) a (cdr l))))))))
+
+; eq?-c takes an atom as its argument, and returns a function that also takes an atom, and 
+; determines if the two atoms are equal.
+(define eq?-c
+    (lambda (a)
+        (lambda (x)
+            (eq? x a))))
+
+; insertL-f works exactly the same as insertL, but now is curried.
+(define insertL-f
+    (lambda (test?)
+        (lambda (new old l)
+            (cond
+                ((null? l) (quote ()))
+                ((test? (car l) old) (cons new (cons old (cdr l))))
+                (else (cons (car l) ((insertL-f test?) new old (cdr l))))))))
+
+; insertR-f works exactly the same as insertR, but now is curried.
+(define insertR-f
+    (lambda (test?)
+        (lambda (new old l)
+            (cond
+                ((null? l) (quote ()))
+                ((test? (car l) old) (cons old (cons new (cdr l))))
+                (else (cons (car l) ((insertR-f test?) new old (cdr l))))))))
+
+; seqL conses the first argument onto the result of consing the second argument onto the third 
+; argument.
+(define seqL
+    (lambda (new old l)
+        (cons new (cons old l))))
+
+; seqR conses the second argument onto the result of consing the first argument onto the third 
+; argument.
+(define seqR
+    (lambda (new old l)
+        (cons old (cons new l))))
+
+; insert-g can either function as insertL or as insertR depending on the version of seq that it 
+; receives as an argument.
+(define insert-g
+    (lambda (seq)
+        (lambda new old l)
+            (cond
+                ((null? l) (quote ()))
+                ((eq? (car l) old) (seq new old (cdr l)))
+                (else (cons (car l) ((insert-g seq) new old (cdr l)))))))
+
+; insertL-g works exactly the same as insertL.
+(define insertL-g (insert-g seqL))
+
+; insertR-g works exactly the same as insertR.
+(define insertR-g (insert-g seqR))
+
+; insertL-g2 works exactly the same as insertL-g, without using seqL.
+(define insertL-g2
+    (insert-g
+        (lambda (new old l)
+            (cons new (cons old l)))))
+
+; seqS conses the first argument onto the third argument.
+(define seqS
+    (lambda (new old l)
+        (cons new l)))
+
+; subst-g works exactly the same as subst.
+(define subst-g (insert-g seqS))
+
+; seqrem serves as a helper function for rember-g.
+(define seqrem
+    (lambda (new old l) l))
+
+; rember-g works exactly the same as rember.
+(define rember-g
+    (lambda (a l)
+        ((insert-g seqrem) #f a l)))
+
+; atom-to-function returns the appropriate function based on whether the operator represents the o+, 
+; o*, or o^ function.
+(define atom-to-function
+    (lambda (x)
+        (cond
+            ((eq? x (quote +)) o+)
+            ((eq? x (quote x)) o*)
+            (else o^))))
+
+; value-atf works exactly the same as value, but it uses the atom-to-function helper function.
+(define value-atf
+    (lambda (nexp)
+        (cond
+            ((atom? nexp) nexp)
+            (else ((atom-to-function (operator nexp)) 
+                (value-atf (1st-sub-exp nexp)) (value-atf (2nd-sub-exp nexp)))))))
+
+; multirember-f works exactly the same as multirember, but now is curried.
+(define multirember-f
+    (lambda (test?)
+        (lambda (a lat)
+            (cond
+                ((null? lat) (quote ()))
+                ((test? a (car lat)) ((multirember-f test?) a (cdr lat)))
+                (else (cons (car lat) ((multirember-f test?) a (cdr lat))))))))
+
+; multirember-eq? curries multirember-f with eq?.
+(define multirember-eq?
+    (multirember-f test?))
+
+; multiremberT works like multiremberT, but takes in a test function.
+(define multiremberT
+    (lambda (test? lat)
+        (cond
+            ((null? lat) (quote ()))
+            ((test? (car lat)) (multiremberT test? (cdr lat)))
+            (else (cons (car lat) (multiremberT test? (cdr lat)))))))
+
+;multirember&co works like multirember but uses a collector function.
+(define multirember&co
+    (lambda (a lat col)
+        (cond
+            ((null? lat) (col (quote()) (quote ())))
+            ((eq? (car lat) a) (multirember&co a (cdr lat)
+                (lambda (newlat seen)
+                    (col newlat (cons (car lat) seen)))))
+            (else (multirember&co a (cdr lat) 
+                (lambda (newlat seen)
+                    (col (cons (car lat) newlat) seen)))))))
+
+; a-friend determines whether the second argument is an empty list.
+(define a-friend
+    (lambda (x y)
+        (null? y)))
+
+; multiinsertLR works exactly like both multiinsertL and multiinsertR.
+(define multiinsertLR
+    (lambda (new oldL oldR lat)
+        (cond
+            ((null? lat) (quote ()))
+            ((eq? (car lat) oldL) (cons new (cons oldL (multiinsertLR new oldL oldR (cdr lat)))))
+            ((eq? (car lat) oldR) (cons oldR (cons new (multiinsertLR new oldL oldR (cdr lat)))))
+            (else (cons (car lat) (multiinsertLR new oldL oldR (cdr lat)))))))
+
+; multiinsertLR&co is multiinsertLR with a collector function.
+(define multiinsertLR&co
+    (lambda (new oldL oldR lat col)
+        (cond
+            ((null? lat) (col (quote ()) 0 0))
+            ((eq? (car lat) oldL) (multiinsertLR&co new oldL oldR (cdr lat)
+                (lambda (newlat L R) (col (cons new (cons oldL newlat)) (add1 L) R))))
+            ((eq? (car lat) oldR) (multiinsertLR&co new oldL oldR (cdr lat)
+                (lambda (newlat L R) (col (cons oldR (cons new newlat)) L (add1 R)))))
+            (else (multiinsertLR&co new oldL oldR (cdr lat)
+                (lambda (newlat L R) (col (cons (car lat) newlat) L R)))))))
+
+; evens-only* removes all odd numbers from a list, and recurses on all lists within that list.
+(define evens-only*
+    (lambda (l)
+        (cond
+            ((null? l) (quote ()))
+            ((atom? (car l))
+                (cond
+                    ((even? (car l)) (cons (car l) (evens-only* (cdr l))))
+                    (else (evens-only* (cdr l)))))
+            (else (cons (evens-only* (car l)) (evens-only* (cdr l)))))))
+
+; evens-only*&co works exactly like evens-only*, except that it also has a collector that collects 
+; the evens, their product, and the sum of all the odd numbers in the list.
+(define evens-only*&co
+    (lambda (l col)
+        (cond
+            ((null? l) (col (quote ()) 1 0))
+            ((atom? (car l))
+                (cond
+                    ((even? (car l)) (evens-only*&co (cdr l)
+                        (lambda (newl p s) (col (cons (car l) newl) (o* (car l) p) s))))
+                    (else (evens-only*&co (cdr l)
+                        (lambda (newl p s) (col newl p (o+ (car l) s)))))))
+            (else (evens-only*&co (car l)
+                (lambda (al ap as) (evens-only*&co (cdr l)
+                    (lambda (dl dp ds) (col (cons al dl) (o* ap dp) (o+ as ds))))))))))
