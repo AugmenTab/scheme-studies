@@ -148,7 +148,7 @@
             ((U (lambda (set)
                 (cond
                     ((null? set) set2)
-                    ((member? (car set) set2) (U (cdr set)))
+                    ((member?-letrec (car set) set2) (U (cdr set)))
                     (else (cons (car set) (U (cdr set))))))))
             (U set1))))
 
