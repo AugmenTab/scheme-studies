@@ -217,3 +217,111 @@
                             (pick (car tup) (cons (car tup) rp))
                             (P (cdr tup) (cons (car tup) rp))))))
             (P tup (quote ())))))
+
+;;--------------------------------------------------------------------------------------------------
+
+; Chapter 13: Hop, Skip, and Jump
+
+; intersect-letrec works exactly like intersect, except that we have hidden it like the functions in
+; chapter 12.
+(define intersect-letrec
+    (lambda (set1 set2)
+        (letrec
+            ((I (lambda (set 1)
+                (cond
+                    ((null? set1) (quote ()))
+                    ((member?-rev (car set1) set2) (cons (car set1) (I (cdr set1))))
+                    (else (I (cdr set1)))))))
+            (cond
+                ((null? set2) (quote ()))
+                (else (I set1))))))
+
+; intersectall-letrec works exactly like intersectall, except that we have hidden it like the
+; functions in chapter 12.
+(define intersectall-letrec
+    (lambda (lset)
+        (letrec
+            ((A (lambda (lset)
+                (cond
+                    ((null? (cdr lset)) (car lset))
+                    (else (intersect-letrec (car lset) (A (cdr lset))))))))
+            (cond
+                ((null? lset) (quote ()))
+                (else (A lset))))))
+
+; intersectall-letcc works exactly like intersectall-letrec, except that it is using letcc to avoid
+; having to intersect each set with the empty set if an empty set is present in lset.
+(define intersectall-letcc
+    (lambda (lset)
+        (letcc hop
+            (letrec
+                ((A (lambda (lset)
+                    (cond
+                        ((null? (car lset)) (hop (quote ())))
+                        ((null? (cdr lset) (car lset))
+                        (else (intersect-letrec (car lset) (A (cdr lset))))))))
+                (cond
+                    ((null? lset) (quote ()))
+                    (else (A lset))))))))
+
+; intersectall-minor works exactly like intersectall-letcc, except that it defines intersect-letrec
+; as a minor function inside.
+(define intersectall-minor
+    (lambda (lset)
+        (letcc hop
+            (letrec
+                ((A (lambda (lset)
+                    (cond
+                        ((null? (car lset)) (hop (quote ())))
+                        ((null? (cdr lset)) (car lset))
+                        (else (I (car lset))))))
+                (I (lambda (s1 s2)
+                    (letrec
+                        ((J (lambda (s1)
+                            (cond
+                                ((null? s1) (quote ()))
+                                ((member?-rev (car s1) s2) (J (cdr s1)))
+                                (else (cons (car s1) (J (cdr s1))))))))
+                        (cond
+                            ((null? s2) (hop (quote ())))
+                            (else (J s1)))))))
+                (cond
+                    ((null? lset) (quote ()))
+                    (else (A lset)))))))
+
+; rember-letrec works exactly like rember, except that we have hidden it like the functions in
+; chapter 12.
+(define rember-letrec
+    (lambda (a lat)
+        (letrec
+            ((R (lambda (lat)
+                (cond
+                    ((null? lat) (quote ()))
+                    ((eq? (car lat) a) (cdr lat))
+                    (else (cons (car lat) (R (cdr lat))))))))
+            (R lat))))
+
+; rember-beyond-first takes an atom a and a lat and, if a occurs in the lat, removes all atoms from
+; the lay beyond and including the first occurrence of a.
+(define rember-beyond-first
+    (lambda (a lat)
+        (letrec
+            ((R (lambda (lat)
+                (cond
+                    ((null? lat) (quote ()))
+                    ((eq? (car lat) a) (quote ()))
+                    (else (cons (car lat) (R (cdr lat))))))))
+            (R lat))))
+
+; rember-upto-last takes an atom a and a lat and removes all the atoms from the lat up to and
+; including the last occurrence of a. If there are no occurrences of a, it returns the lat.
+(define rember-upto-last
+    (lambda (a lat)
+        (letcc skip
+            (letrec
+                ((R (lambda (lat)
+                    (cond
+                        ((null? lat) (quote ()))
+                        ((eq? (car lat) a) (skip (R (cdr lat))))
+                        (else (cons (car lat) (R (cdr lat))))))))
+                (R lat)))))
