@@ -325,3 +325,152 @@
                         ((eq? (car lat) a) (skip (R (cdr lat))))
                         (else (cons (car lat) (R (cdr lat))))))))
                 (R lat)))))
+
+;;--------------------------------------------------------------------------------------------------
+
+; Chapter 14: Let There Be Names
+
+; leftmost* works exactly like leftmost, except that where leftmost finds the leftmost atom in a
+; non-empty list of S-expressions that does not contain the empty list, leftmost* is able to find
+; the leftmost atom in a non-empty list of S-expressions without restricting the shape of its
+; argument.
+(define leftmost*
+    (lambda (l)
+        (cond
+            ((null? l) (quote ()))
+            ((atom? (car l)) (car l))
+            (else
+                (let ((a (leftmost* (car l))))
+                    (cond
+                        ((atom? a) a)
+                        (else (leftmost* (cdr l)))))))))
+
+; rember1* takes an atom a and a list of S-expressions l, and goes through the list. When there is a
+; list in the car, it attempts to remove a from the car. If the car remains the same, a is not in
+; the car, rember1* must continue. When rember1* finds an atom in the list, and the atom is equal to
+; a, it is removed.
+(define rember1*
+    (lambda (a l)
+        (letrec
+            ((R (lambda (l)
+                (cond
+                    ((null? l) (quote ()))
+                    ((atom? (car l))
+                        (cond
+                            ((eq? (car l) a) (cdr l))
+                            (else (cons (car l) (R (cdr l))))))
+                    (else
+                        (let ((av (R (car l))))
+                            (cond
+                                ((eqlist? (car l) av) (cons (car l) (R (cdr l))))
+                                (else (cons av (cdr l))))))))))
+            (R l))))
+
+; depth* finds the maximum depth of an S-expression.
+(define depth*
+    (lambda (l)
+        (cond
+            ((null? l) 1)
+            ((atom? (car l)) (depth* (cdr l)))
+            (else
+                (let ((a (add1 (depth* (car l)))) (d (depth* (cdr l))))
+                    (if (o> d a) d a))))))
+
+; max returns the larger of the two numbers passed to it as its arguments.
+(define max
+    (lambda (n m)
+        (if (o> n m) n m)))
+
+; depth*-max works exactly the same as depth*, except that it uses max as a helper function.
+(define depth*-max
+    (lambda (l)
+        (cond
+            ((null? l) 1)
+            ((atom? (car l)) (depth*-max (cdr l)))
+            (else (max (add1 (depth*-max (car l))) (depth*-max (cdr l)))))))
+
+; scramble-let works exactly the same as scramble-b, except that it uses let.
+(define scramble-let
+    (lambda (tup)
+        (letrec
+            ((P (lambda (tup rp)
+                (cond
+                    ((null? tup) (quote ()))
+                    (else
+                        (let ((rp (cons (car tup) rp)))
+                            (cons (pick (car tup) rp) (P (cdr tup) rp))))))))
+            (P tup (quote ())))))
+
+; leftmost-lm works exactly like leftmost, except that it uses a helper function lm to help it skip
+; unnecessary steps.
+(define leftmost-lm
+    (lambda (l)
+        (letcc skip
+            (lm l skip))))
+
+; lm serves as a helper function for leftmost-lm.
+(define lm
+    (lambda (l out)
+        (cond
+            ((null? l) (quote ()))
+            ((atom? (car l)) (out (car l)))
+            (else (let ()
+                (lm (car l) out)
+                (lm (cdr l) out))))))
+
+; leftmost-hidden works exactly like leftmost, except that it hides the helper function lm inside.
+; It determines the values of (lm l), then looks at every atom in l from left to right until it
+; finds an atom, and then uses skip to return this atom abruptly and promptly.
+(define leftmost-hidden
+    (lambda (l)
+        (letcc skip
+            (letrec
+                ((lm (lambda (l)
+                    (cond
+                        ((null? l) (quote ()))
+                        ((atom? (car l)) (skip (car l)))
+                        (else
+                            (let ()
+                                (lm (car l))
+                                (lm (cdr l))))))))
+                (lm l)))))
+
+; rm
+(define rm
+    (lambda (a l oh)
+        (cond
+            ((null? l) (oh (quote no)))
+            ((atom? (car l))
+                (if (eq? (car l) a) (cdr l) (cons (car l) (rm a (cdr l) oh))))
+            (else
+                (let ((new-car
+                    (letcc oh (rm a (car l) oh))))
+                        (if (atom? new-car) (cons (car l) (rm a (cdr l) oh))
+                            (cons new-car (cdr l))))))))
+
+; rember1*-rm works exactly the same as rember1*, except that it uses rm as a helper function.
+(define rember1*-rm
+    (lambda (a l)
+        (let ((new-l (letcc oh (rm a l oh))))
+            (if (atom? new-l)
+                l
+                new-l))))
+
+; rember1*-try works exactly the same as rember1*, except that it uses try.
+(define rember1*-try
+    (lambda (a l)
+        (try oh (rm a l oh) l)))
+
+; rm-try works exactly like rm, except that it uses try.
+(define rm-try
+    (lambda (a l oh)
+        (cond
+            ((null? l) (oh (quote no)))
+            ((atom? (car l))
+                (if (eq? (car l) a)
+                    (cdr l)
+                    (cons (car l) (rm a (cdr l) oh))))
+            (else
+                (try oh2
+                    (cons (rm a (car l) oh2) (cdr l))
+                    (cons (car l) (rm a (cdr l) oh)))))))
