@@ -78,4 +78,142 @@
             ((null? tup) (quote ()))
             (else (cons (pick (car tup) (cons (car tup) rev-prev)) 
                 (scramble-b (cdr tup) (cons (car tup) rev-prev)))))))
-                
+
+;;--------------------------------------------------------------------------------------------------
+
+; Chapter 12: Take Cover
+
+; multirember-Y works exactly like multirember, except that it uses a Y-combinator.
+(define multirember-Y
+    (lambda (a lat)
+        ((Y (lambda (mr)
+            (lambda (lat)
+                (cond
+                    ((null? lat) (quote ()))
+                    ((eq? a (car lat)) (mr (cdr lat)))
+                    (else (cons (car lat) (mr (cdr lat))))))))
+        lat)))
+
+; length-Y works exactly like length, except that it uses a Y-combinator.
+(define length-Y
+    (Y (lambda (length)
+        (lambda (l)
+            (cond
+                ((null? l) 0)
+                (else (add1 (length-Y (cdr l)))))))))
+
+; multirember-letrec works exactly like multirember, except that it uses letrec.
+(define multirember-letrec
+    (lambda (a lat)
+        ((letrec
+            ((mr (lambda (lat)
+                (cond
+                    ((null? lat) '())
+                    ((eq? a (car lat)) (mr (cdr lat)))
+                    (else (cons (car lat) (mr (cdr lat))))))))
+                mr)
+            lat)))
+
+; multirember-f accepts a function test? and returns a new function, which takes an atom a and a
+; list of atoms lat and traverses the latter. Any atom b in lat for which (test? a b) is true is
+; removed.
+(define multirember-f
+    (lambda (test?)
+        (letrec
+            ((m-f
+                (lambda (a lat)
+                    (cond
+                        ((null? lat) (quote ()))
+                        ((test? (car lat) a) (m-f a (cdr lat)))
+                        (else (cons (car lat) (m-f a (cdr lat))))))))
+            m-f)))
+
+; member?-letrec works exactly like member?, except that it uses letrec.
+(define member?-letrec
+    (lambda (a lat)
+        (letrec
+            ((yes? (lambda (l)
+                (cond
+                    ((null? l) #f)
+                    ((eq? (car l) a) #t)
+                    (else (yes? (cdr l)))))))
+            (yes? lat))))
+
+; union-letrec works exactly the same as union, except that it uses letrec. It defines another
+; function U that cdrs down set, consing up all elements that are not a member of set2. Eventually U
+; will cons all these elements onto set2. Second, union-letrec applies U to set1.
+(define union-letrec
+    (lambda (set1 set2)
+        (letrec
+            ((U (lambda (set)
+                (cond
+                    ((null? set) set2)
+                    ((member? (car set) set2) (U (cdr set)))
+                    (else (cons (car set) (U (cdr set))))))))
+            (U set1))))
+
+; member?-rev works exactly the same as member?, except that it accepts its arguments in reverse.
+; That is, it accepts a lat first, and then an atom second.
+(define member?-rev
+    (lambda (lat a)
+        (cond
+            ((null? lat) #f)
+            ((eq? (car lat) a) #t)
+            (else (member?-rev (cdr lat) a)))))
+
+; union-letrec-2 assumes the above version of member? is the default.
+(define union-letrec-2
+    (lambda (set1 set2)
+        (letrec
+            ((U (lambda (set)
+                (cond
+                    ((null? set) set2)
+                    ((M? (car set) set2) (U (cdr set)))
+                    (else (cons (car set) (U (cdr set)))))))
+            (M? (lambda (a lat)
+                (letrec
+                    ((N? (lambda (lat)
+                        (cond
+                            ((null? lat) #f)
+                            ((eq? (car lat) a) #t)
+                            (else (N? (cdr lat)))))))
+                (N? lat)))))
+            (U set1))))
+
+; two-in-a-row-b? works exactly the same as two-in-a-row?, except that we have hidden it like the
+; other functions in this chapter.
+(define two-in-a-row-b?
+    (letrec
+        ((W (lambda (a lat)
+            (cond
+                ((null? lat) #f)
+                (else (or (eq? (car lat) a) (W (car lat) (cdr lat))))))))
+        (lambda (lat)
+            (cond
+                ((null? lat) #f)
+                (else (W (car lat) (cdr lat)))))))
+
+; sum-of-prefixes-b works exactly the same as sum-of-prefixes, except that we have hidden it like
+; the other functions in this chapter.
+(define sum-of-prefixes-b
+    (lambda (tup)
+        (letrec
+            ((S (lambda (sss tup)
+                (cond
+                    ((null? tup) (quote ()))
+                    (else (cons (o+ sss (car tup)) (S (o+ sss (car tup)) (cdr tup))))))))
+            (S 0 tup))))
+
+; scramble-b works exactly the same as sum-of-prefixes, except that we have hidden it like the
+; other functions in this chapter.
+(define scramble-b
+    (lambda (tup)
+        (letrec
+            ((P (lambda (tup rp)
+                (cond
+                    ((null? tup) (quote ()))
+                    (else 
+                        (cons 
+                            (pick (car tup) (cons (car tup) rp))
+                            (P (cdr tup) (cons (car tup) rp))))))
+            (P tup (quote ())))))
