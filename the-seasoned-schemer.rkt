@@ -474,3 +474,59 @@
                 (try oh2
                     (cons (rm a (car l) oh2) (cdr l))
                     (cons (car l) (rm a (cdr l) oh)))))))
+
+;;--------------------------------------------------------------------------------------------------
+
+; Chapter 15: The Difference Between Men and Boys...
+
+; 
+(set! x (quote rings))  ; First instance in chapter; set to other values for other examples.
+
+(define gourmet
+    (lambda (food)
+        (cons food (cons x (quote ())))))
+
+(define gourmand
+    (lambda (food)
+        (set! x food)
+        (cons food (cons x (quote ())))))
+
+(define diner
+    (lambda (food)
+        (cons (quote milkshake) (cons food (quote ())))))
+
+(define dinerR
+    (lambda (food)
+        (set! x food)
+        (cons (quote milkshake) (cons food (quote ())))))
+
+(define omnivore
+    (let ((x (quote minestrone)))
+        (lambda (food)
+            (set! x food)
+            (cons food (cons x (quote ()))))))
+
+(define gobbler
+    (let ((x (quote minestrone)))
+        (lambda (food)
+            (set! x food)
+            (cons food (cons x (quote ()))))))
+
+(define nibbler
+    (lambda (food)
+        (let ((x (quote donut)))
+            (set! x food)
+            (cons food (cons x (quote ()))))))
+
+(define food (quote none))
+
+(define glutton
+    (lambda (x)
+        (set! food x)
+        (cons (quote more) (cons x (cons (quote more) (cons x (quote ())))))))
+
+(define chez-nous
+    (lambda ()
+        (let ((a food))
+            (set! food x)
+            (set! x a))))
