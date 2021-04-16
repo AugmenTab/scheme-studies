@@ -530,3 +530,101 @@
         (let ((a food))
             (set! food x)
             (set! x a))))
+
+;;--------------------------------------------------------------------------------------------------
+
+; Chapter 16: Ready, Set, Bang!
+
+(define sweet-toothL
+    (lambda (food)
+        (set! last food)
+        (cons food (cons (quote cake) (quote ())))))
+
+(define sweet-toothR
+    (lambda (food)
+        (set! ingredients (cons food ingredients))
+        (cons food (cons (quote cake) (quote ())))))
+
+(define deep
+    (lambda (m)
+        (cond
+            ((zero? m) (quote pizza))
+            (else (cons (deepM (sub1 m)) (quote ()))))))
+
+(define Ns (quote ()))
+(define Rs (quote ()))
+
+(define deepR
+    (lambda (n)
+        (let ((result (deep n)))
+            (set! Rs (cons result Rs))
+            (set! Ns (cons n Ns))
+            result)))
+
+(define find
+    (lambda (n Ns Rs)
+        (letrec
+            ((A (lambda (ns rs)
+                (cond
+                    ((null? ns) #f)
+                    ((o= (car ns) n) (car rs))
+                    (else (A (cdr ns) (cdr rs)))))))
+             (A Ns Rs))))
+
+(define deepM
+    (let ((Rs (quote ()))
+          (Ns (quote ())))
+        (lambda (n)
+            (let ((exists (find n Ns Rs)))
+                (if (atom? exists)
+                    (let ((result (deep n)))
+                        (set! Rs (cons result Rs))
+                        (set! Ns (cons n Ns))
+                        result)
+                    exists)))))
+
+(set! Ns (cdr Ns))
+(set! Rs (cdr Rs))
+
+(define L
+    (lambda (length)
+        (lambda (l)
+            (cond
+                ((null? l) 0)
+                (else (add1 (length (cdr l))))))))
+
+(define length
+    (let ((h (lambda (l) 0)))
+        (set! h (L (lambda (arg) (h arg)))) 
+        h))
+
+(define Y!
+    (lambda (L)
+        (let ((h (lambda (l) (quote ()))))
+            (set! h (L (lambda (arg) (h arg))))
+            h)))
+
+(define Y-bang
+    (lambda (f)
+        (letrec
+            ((h (f (lambda (arg) (h arg)))))
+            h)))
+
+(define length (Y! L))
+
+(define D
+    (lambda (depth*)
+        (lambda (s)
+            (cond
+                ((null? s) 1)
+                ((atom? (car s)) (depth* (cdr s)))
+                (else (max (add1 (depth* (car s))) (depth* (cdr s))))))))
+
+(define depth* Y! D)
+
+(define biz
+    (let ((x 0))
+        (lambda (f)
+            (set! x (add1 x))
+            (lambda (a)
+                (if (o= a x) 0 (f a))))))
