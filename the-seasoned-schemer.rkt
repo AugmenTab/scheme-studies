@@ -628,3 +628,121 @@
             (set! x (add1 x))
             (lambda (a)
                 (if (o= a x) 0 (f a))))))
+
+;;--------------------------------------------------------------------------------------------------
+
+; Chapter 17: We Change, Therefore We Are!
+
+(define deep-if
+    (lambda (m)
+        (if (zero? m)
+            (quote pizza)
+            (cons (deep-if (sub1 m)) (quote ())))))
+
+(define deepM
+    (let ((Rs (quote ()))
+          (Ns (quote ())))
+        (lambda (n)
+            (let ((exists (find n Ns Rs)))
+                (if (atom? exists)
+                    (let ((result
+                            (if (zero? n)
+                                (quote pizza)
+                                (cons (deepM (sub1 n)) (quote ())))))
+                        (set! Rs (cons result Rs))
+                        (set! Ns (cons n Ns))
+                        result)
+                    exists)))))
+
+(define counter)
+
+(define consC
+    (let ((N 0))
+        (set! counter (lambda () N))
+        (lambda (x y)
+            (set! N (add1 N))
+            (cons x y))))
+
+(define deep
+    (lambda (m)
+        (if (zero? m)
+            (quote pizza)
+            (consC (deep (sub1 m)) (quote ())))))
+
+(define supercounter
+    (lambda (f)
+        (letrec
+            ((S (lambda (n)
+                (if (zero? n)
+                    (f n)
+                    (let ()
+                        (f n)
+                        (S (sub1 n)))))))
+            (S 1000)
+            (counter))))
+
+(define counter)
+(define set-counter)
+(define consC
+    (let ((N 0))
+        (set! counter (lambda () N))
+        (set! set-counter
+            (lambda (x)
+                (set! N x)))
+        (lambda (x y)
+            (set! N (add1 N))
+            (cons x y))))
+
+(define deepM
+    (let ((Rs (quote ()))
+          (Ns (quote ())))
+        (lambda (n)
+            (let ((exists (find n Ns Rs)))
+                (if (atom? exists)
+                    (let ((result
+                            (if (zero? n)
+                                (quote pizza)
+                                (consC (deepM (sub1 n)) (quote ())))))
+                        (set! Rs (cons result Rs))
+                        (set! Ns (cons n Ns))
+                        result)
+                    exists)))))
+
+(define rember1*C
+    (lambda (a l)
+        (letrec
+            ((R (lambda (l oh)
+                (cond
+                    ((null? l) (oh (quote no)))
+                    ((atom? (car l))
+                        (if (eq? (car l) a)
+                            (cdr l)
+                            (consC (car l) (R (cdr l) oh))))
+                    (else
+                        (let ((new-car
+                                (letrec oh
+                                    (R (car l) oh))))
+                            (if (atom? new-car)
+                                (consC (car l) (R (cdr l) oh))
+                                (consC new-car (cdr l)))))))))
+            (let ((new-l (letcc oh (R l oh))))
+                (if (atom? new-l)
+                    l
+                    new-l)))))
+
+(define rember1*C2
+    (lambda (a l)
+        (letrec
+            ((R (lambda (l)
+                (cond
+                    ((null? l) (quote ()))
+                    ((atom? (car l))
+                        (if (eq? (car l) a)
+                            (cdr l)
+                            (consC (car l) (R (cdr l)))))
+                    (else
+                        (let ((av (R (car l))))
+                            (if (eqlist? (car l) av)
+                                (consC (car l) (R (cdr l)))
+                                (consC av (cdr l)))))))))
+            (R l))))
