@@ -746,3 +746,104 @@
                                 (consC (car l) (R (cdr l)))
                                 (consC av (cdr l)))))))))
             (R l))))
+
+;;--------------------------------------------------------------------------------------------------
+
+; Chapter 18: We Change, Therefore We Are the Same!
+
+(define lots
+    (lambda (m)
+        (cond
+            ((zero? m) (quote ()))
+            (else kons (quote egg) (lots (sub1 m))))))
+
+(define lenkth
+    (lambda (l)
+        (cond
+            ((null? l) 0)
+            (else (add1 (lenkth (kdr l)))))))
+
+(define add-at-end
+    (lambda (l)
+        (cond
+            ((null? (kdr l)) (konsC (kar l) (kons (quote egg) (quote ()))))
+            (else (konsC (kar l) (add-at-end (kdr l)))))))
+
+(define add-at-end-too
+    (lambda (l)
+        (letrec
+            ((A (lambda (ls)
+                (cond
+                    ((null? (kdr ls)) (set-kdr ls (kons (quote egg) (quote ())))))
+                    (else (A (kdr ls))))))
+            (A l)
+            l)))
+
+(define kons
+    (lambda (a d)
+        (let ((c (bons a)))
+            (set-kdr c d)
+            c)))
+
+(define kar
+    (lambda (c)
+        (c (lambda (s a d) a))))
+
+(define kdr
+    (lambda (c)
+        (c (lambda (s a d) d))))
+
+(define bons
+    (lambda (kar)
+        (let ((kdr (quote ())))
+            (lambda (selector)
+                (selector (lambda (x) (set! kdr x)) kar kdr)))))
+
+(define eklist?
+    (lambda (ls1 ls2)
+        (cond
+            ((null? ls1) (null? ls2))
+            ((null? ls2) #f)
+            (else
+                (and (eq? (kar ls1) (kar ls2)) (eklist? (kdr ls1) (kdr ls2)))))))
+
+(define same?
+    (lambda (c1 c2)
+        (let ((t1 (kdr c1))
+              (t2 (kdr c2)))
+            (set-kdr c1 1)
+            (set-kdr c2 2)
+            (let ((v (o= (kdr c1) (kdr c2))))
+                (set-kdr c1 t1)
+                (set-kdr c2 t2)
+                v))))
+
+(define last-kons
+    (lambda (ls)
+        (cond
+            ((null? (kdr ls)) ls)
+            (else (last-kons (kdr ls))))))
+
+(define finite-lenkth
+    (lambda (p)
+        (letcc infinite
+            (letrec
+                ((C (lambda (p q)
+                    (cond
+                        ((same? p q) (infinite #f))
+                        ((null? q) 0)
+                        ((null? (kdr q)) 1)
+                        (else (o+ (C (sl p) (qk q)) 2)))))
+                    (qk (lambda (x) (kdr (kdr x))))
+                    (sl (lambda (x) (kdr x))))
+                (cond
+                    ((null? p) 0)
+                    (else (add1 (C p (kdr p)))))))))
+
+(define mongo
+    (kons (quote pie)
+        (kons (quote à)
+            (kons (quote la)
+                (kons (quote mode)
+                    (quote ()))))))
+(set-kdr (kdr (kdr (kdr mongo))) (kdr mongo))
