@@ -847,3 +847,169 @@
                 (kons (quote mode)
                     (quote ()))))))
 (set-kdr (kdr (kdr (kdr mongo))) (kdr mongo))
+
+;;--------------------------------------------------------------------------------------------------
+
+; Chapter 19: Absconding with the Jewels
+
+(define six-layers
+    (lambda (p)
+        (cons
+            (cons
+                (cons
+                    (cons
+                        (cons
+                            (cons p (quote ()))
+                            (quote ()))
+                        (quote ()))
+                    (quote ()))
+                (quote ()))
+            (quote ()))))
+
+(define four-layers
+    (lambda (p)
+        (cons
+            (cons
+                (cons
+                    (cons (quote ()))
+                (quote ()))
+            (quote ()))
+        (quote ()))))
+
+(define toppings)
+
+(define deepB
+    (lambda (m)
+        (cond
+            ((zero? m)
+             (letcc jump
+                (set! toppings jump)
+                (quote pizza)))
+            (else (cons (deepB (sub1 m)) (quote ()))))))
+
+(define deep&co
+    (lambda (m k)
+        (cond
+            ((zero? m) (k (quote pizza)))
+            (else
+                (deep&co (sub1 m)
+                    (lambda (x)
+                        (k (cons x (quote ())))))))))
+
+(define two-layers
+    (lambda (p)
+        (cons 
+            (cons p (quote ()))
+            (quote ()))))
+
+(define deep&coB
+    (lambda (m k)
+        (cond
+            ((zero? m)
+             (let ()
+                (set! toppings k)
+                (k (quote pizza))))
+            (else
+                (deep&coB (sub1 m)
+                    (lambda (x)
+                        (k (cons x (quote ())))))))))
+
+(define leave)
+
+(define walk
+    (lambda (l)
+        (cond
+            ((null? l) (quote ()))
+            ((atom? (car l)) (leave (car l)))
+            (else
+                (let ()
+                    (walk (car l))
+                    (walk (cdr l)))))))
+
+(define start-it
+    (lambda (l)
+        (letcc here
+            (set! leave here)
+            (walk l))))
+
+(define fill)
+
+(define waddle
+    (lambda (l)
+        (cond
+            ((null? l) (quote ()))
+            ((atom? (car l))
+                (let ()
+                    (letcc rest
+                        (set! fill rest)
+                        (leave (car l)))
+                    (waddle (cdr l))))
+            (else (let ()
+                (waddle (car l))
+                (waddle (cdr l)))))))
+
+(define start-it2
+    (lambda (l)
+        (letcc here
+            (set! leave here)
+            (waddle l))))
+
+(define get-next
+    (lambda (x)
+        (letcc here-again
+            (set! leave here-again)
+            (fill (quote go)))))
+
+(define get-first
+    (lambda (l)
+        (letcc here
+            (set! leave here)
+            (waddle l)
+            (leave (quote ())))))
+
+(define two-in-a-row*?
+    (lambda (l)
+        (let ((fst (get-first l)))
+            (if (atom? fst)
+                (two-in-a-row-b*? fst)
+                (#f)))))
+
+(define two-in-a-row-b*?
+    (lambda (a)
+        (let ((n (get-next (quote go))))
+            (if (atom? a)
+                (or (eq? n a) (two-in-a-row-b*? n))
+                #f))))
+
+(define two-in-a-row-2*?
+    (letrec
+        ((T? (lambda (a)
+            (let ((n (get-next 0)))
+                (if (atom? n)
+                    (or (eq? n a) (T? n))
+                    #f))))
+        (get-next
+            (lambda (x)
+                (letcc here-again)
+                    (set! leave here-again)
+                    (fill (quote go)))))
+        (fill (lambda (x) x))
+        (waddle
+            (lambda (l)
+                (cond
+                    ((null? l) (quote ()))
+                    ((atom? (car l))
+                     (let ()
+                        (letcc rest
+                            (set! fill rest)
+                            (leave (car l)))
+                        (waddle (cdr l))))
+                    (else (let ()
+                        (waddle (car l))
+                        (waddle (cdr l)))))))
+        (lambda (l)
+            (let ((fst (letcc here
+                    (set! leave here)
+                    (waddle l)
+                    (leave (quote ())))))
+                (if (atom? fst) (T? fst) #f)))))
