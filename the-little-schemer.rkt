@@ -9,7 +9,7 @@
     (lambda (x)
         (and (not (pair? x)) (not (null? x)))))
 
-; lat? looks at each S-expression in a list, in turn, and asks if each S-expression is an atom, 
+; lat? looks at each S-expression in a list, in turn, and asks if each S-expression is an atom,
 ; until it runs out of S-expressions. If it runs out without encountering a list, the value is #t.
 ; If it finds a list, the value is #f - false.
 (define lat?
@@ -19,8 +19,8 @@
             ((atom? (car l)) (lat? (cdr l)))
             (else #f))))
 
-; member? looks at each S-expression in a list, in turn, and asks if each S-expression is equal to 
-; the S-expression it has been provided. If it runs out of S-expressions before finding a match, 
+; member? looks at each S-expression in a list, in turn, and asks if each S-expression is equal to
+; the S-expression it has been provided. If it runs out of S-expressions before finding a match,
 ; the value is #f. Otherwise, it is #t.
 (define member?
     (lambda (a lat)
@@ -32,8 +32,8 @@
 
 ; Chapter 3: Cons the Magnificent
 
-; rember looks at each S-expression in a list, in turn, and compares it to the S-expression 
-; provided. The first time it discovers an S-expression in that list that matches the provided 
+; rember looks at each S-expression in a list, in turn, and compares it to the S-expression
+; provided. The first time it discovers an S-expression in that list that matches the provided
 ; S-expression, it removes that S-expression from the list. Simplified in chapter 5.
 (define rember
     (lambda (s l)
@@ -42,7 +42,7 @@
             ((equal? (car l) s) (cdr l))
             (else (cons (car l) (rember s (cdr l)))))))
 
-; firsts looks at a list of lists of S-expressions, and builds a new list containing only the first 
+; firsts looks at a list of lists of S-expressions, and builds a new list containing only the first
 ; S-expression from each list in the original list.
 (define firsts
     (lambda (l)
@@ -50,93 +50,93 @@
             ((null? l) '())
             (else (cons (car (car l)) (firsts (cdr l)))))))
 
-; insertR looks at a list of S-expressions, and compares each to the second provided S-expression. 
-; If it finds a matching S-expression, it inserts the first provided S-expression after that 
+; insertR looks at a list of S-expressions, and compares each to the second provided S-expression.
+; If it finds a matching S-expression, it inserts the first provided S-expression after that
 ; matching S-expression in the list.
 (define insertR
     (lambda (new old lat)
         (cond
             ((null? lat) (quote ()))
-            (else 
+            (else
                 (cond
                     ((eq? (car lat) old) (cons old (cons new (cdr lat))))
                     (else (cons (car lat) (insertR new old (cdr lat)))))))))
 
-; insertL looks at a list of S-expressions, and compares each to the second provided S-expression. 
-; If it finds a matching S-expression, it inserts the first provided S-expression before that 
+; insertL looks at a list of S-expressions, and compares each to the second provided S-expression.
+; If it finds a matching S-expression, it inserts the first provided S-expression before that
 ; matching S-expression in the list.
 (define insertL
     (lambda (new old lat)
         (cond
             ((null? lat) (quote ()))
-            (else 
+            (else
                 (cond
                     ((eq? (car lat) old) (cons new lat))
                     (else (cons (car lat) (insertL new old (cdr lat)))))))))
 
-; subst looks at a list of S-expressions, and compares each to the second provided S-expression. If 
-; it finds a matching S-expression, it replaces that first occurrence of the matching S-expression 
+; subst looks at a list of S-expressions, and compares each to the second provided S-expression. If
+; it finds a matching S-expression, it replaces that first occurrence of the matching S-expression
 ; in the list with the first provided S-expression.
 (define subst
     (lambda (new old lat)
         (cond
             ((null? lat) (quote ()))
-            (else 
+            (else
                 (cond
                     ((eq? (car lat) old) (cons new (cdr lat)))
                     (else (cons (car lat) (subst new old (cdr lat)))))))))
 
-; subst2 looks at a list of S-expressions, and compares each to the second and third provided 
-; S-expressions. If it finds a matching S-expression, it replaces that first occurrence of the 
+; subst2 looks at a list of S-expressions, and compares each to the second and third provided
+; S-expressions. If it finds a matching S-expression, it replaces that first occurrence of the
 ; matching S-expression in the list with the first provided S-expression.
 (define subst2
     (lambda (new o1 o2 lat)
         (cond
             ((null? lat) (quote()))
-            (else 
+            (else
                 (cond
-                    (or ((eq? (car lat) o1) (cons new (cdr lat))) 
+                    (or ((eq? (car lat) o1) (cons new (cdr lat)))
                         ((eq? (car lat) o2) (cons new (cdr lat))))
                     (else (cons (car lat) (subst2 new o1 o2 (cdr lat))))))))
 )
-; multirember looks at each S-expression in a list, in turn, and compares it to the S-expression 
-; provided. Every time it discovers an S-expression in that list that matches the provided 
+; multirember looks at each S-expression in a list, in turn, and compares it to the S-expression
+; provided. Every time it discovers an S-expression in that list that matches the provided
 ; S-expression, it removes that S-expression from the list.
 (define multirember
     (lambda (a lat)
         (cond
             ((null? lat) (quote()))
-            (else 
+            (else
                 (cond
                     ((eq? (car lat) a) (multirember a (cdr lat)))
                     (else (cons (car lat) (multirember a (cdr lat)))))))))
 
-; multiinsertR looks at a list of S-expressions, and compares each to the second provided 
-; S-expression. For each matching S-expression it finds, it inserts the first provided S-expression 
+; multiinsertR looks at a list of S-expressions, and compares each to the second provided
+; S-expression. For each matching S-expression it finds, it inserts the first provided S-expression
 ; after that matching S-expression in the list.
 (define multiinsertR
     (lambda (new old lat)
         (cond
             ((null? lat) (quote ()))
-            (else 
+            (else
                 (cond
                     ((eq? (car lat) old) (cons old (cons new (multiinsertR new old (cdr lat)))))
                     (else (cons old (multiinsertR new old (cdr lat)))))))))
 
-; multiinsertL looks at a list of S-expressions, and compares each to the second provided 
-; S-expression. For each matching S-expression it finds, it inserts the first provided S-expression 
+; multiinsertL looks at a list of S-expressions, and compares each to the second provided
+; S-expression. For each matching S-expression it finds, it inserts the first provided S-expression
 ; before that matching S-expression in the list.
 (define multiinsertL
     (lambda (new old lat)
         (cond
             ((null? lat) (quote()))
-            (else 
+            (else
                 (cond
                     ((eq? (car lat) old) (cons new (cons old (multiinsertL new old (cdr lat)))))
                     (else (cons (car lat) (multiinsertL new old (cdr lat)))))))))
 
-; multisubst looks at a list of S-expressions, and compares each to the second provided 
-; S-expression. For each matching S-expression it finds, it replaces that matching S-expression in 
+; multisubst looks at a list of S-expressions, and compares each to the second provided
+; S-expression. For each matching S-expression it finds, it replaces that matching S-expression in
 ; the list with the first provided S-expression.
 (define multisubst
     (lambda (new old lat)
@@ -151,8 +151,8 @@
 
 ; Chapter 4: Numbers Games
 
-; o+ takes two numbers as arguments, and reduces the second until it hits zero. It adds one to the 
-; first number as many times as it reduced the second one in order to reach zero, thus adding the 
+; o+ takes two numbers as arguments, and reduces the second until it hits zero. It adds one to the
+; first number as many times as it reduced the second one in order to reach zero, thus adding the
 ; two numbers together.
 (define o+
     (lambda (n m)
@@ -160,8 +160,8 @@
             ((zero? m) n)
             (else (add1 (o+ n (sub1 m)))))))
 
-; o- takes two numbers as arguments, and reduces the second until it hits zero. It subtracts one 
-; from the first number as many times as it did to cause the second one to reach zero, thus 
+; o- takes two numbers as arguments, and reduces the second until it hits zero. It subtracts one
+; from the first number as many times as it did to cause the second one to reach zero, thus
 ; subtracting the second number from the first one.
 (define o-
     (lambda (n m)
@@ -176,7 +176,7 @@
             ((null? tup) 0)
             (else o+ (car tup) (addtup (cdr tup))))))
 
-; o* takes two numbers as arguments, and reduces the second until it hits zero. It adds the first 
+; o* takes two numbers as arguments, and reduces the second until it hits zero. It adds the first
 ; number to the first number as many times as it reduced the second one in order to reach zero, thus
 ; multiplying the two numbers together.
 (define o*
@@ -185,17 +185,17 @@
             ((zero? m) 0)
             (else (o+ n (o* n (sub1 m)))))))
 
-; tup+ takes two tups as arguments, and adds the first number of tup1 to the first number of tup2. 
+; tup+ takes two tups as arguments, and adds the first number of tup1 to the first number of tup2.
 ; Then, it adds the second number of tup1 to the second number of tup2, and so on, building a tup of
 ; the answers, for tups of the same length.
 (define tup+
     (lambda (tup1 tup2)
         (cond
-            ((null? tup1) tup2) 
+            ((null? tup1) tup2)
             ((null? tup2) tup1)
             (else (cons (o+ (car tup1) (car tup2)) (tup+ (cdr tup1) (cdr tup2)))))))
 
-; o> takes two numbers as arguments, and subtracts one from each of them until one equals zero. If 
+; o> takes two numbers as arguments, and subtracts one from each of them until one equals zero. If
 ; the first number is equal to zero, o> is false. If the second number is equal to zero, o> is true.
 (define o>
     (lambda (n m)
@@ -204,7 +204,7 @@
             ((zero? m) #t)
             (else (o> (sub1 n) (sub1 m))))))
 
-; o< takes two numbers as arguments, and subtracts one from each of them until one equals zero. If 
+; o< takes two numbers as arguments, and subtracts one from each of them until one equals zero. If
 ; the second number is equal to zero, o< is false. If the first number is equal to zero, o< is true.
 (define o<
     (lambda (n m)
@@ -213,7 +213,7 @@
             ((zero? n) #t)
             (else (o< (sub1 n) (sub1 m))))))
 
-; o= takes two numbers as arguments, and checks if either o> or o< is true when passed the two 
+; o= takes two numbers as arguments, and checks if either o> or o< is true when passed the two
 ; arguments. If neither comes back true, then o= is true.
 (define o=
     (lambda (n m)
@@ -222,8 +222,8 @@
             ((o< n m) #f)
             (else #t))))  ; maybe (cond (not (or (((o> n m) #f) ((o< n m) #f)))))?
 
-; o^ takes two numbers as arguments, and reduces the second until it hits zero. If multiplies the 
-; first number by the first number as many times as it reduced the second one in order to reach 
+; o^ takes two numbers as arguments, and reduces the second until it hits zero. If multiplies the
+; first number by the first number as many times as it reduced the second one in order to reach
 ; zero, thus raising the first number to the power of the second number.
 (define o^
     (lambda (n m)
@@ -246,7 +246,7 @@
             ((null? lat) 0)
             (else (add1 (length (cdr lat)))))))
 
-; pick takes in a number and a list as its arguments, and provides the member of that list that 
+; pick takes in a number and a list as its arguments, and provides the member of that list that
 ; appears in the position of the first argument.
 (define pick
     (lambda (n lat)
@@ -254,7 +254,7 @@
             ((zero? (sub1 n)) (car lat))
             (else (pick (sub1 n) (cdr lat))))))
 
-; rempick takes in a number and a list as its arguments, and provides the list with the member of 
+; rempick takes in a number and a list as its arguments, and provides the list with the member of
 ; that list that appears in the position of the first argument removed.
 (define rempick
     (lambda (n lat)
@@ -262,7 +262,7 @@
             ((one? n) (cdr lat))
             (else (cons (car lat) (rempick (sub1 n) (cdr lat)))))))
 
-; no-nums takes a list as its argument, which provides the original list with all of the numbers 
+; no-nums takes a list as its argument, which provides the original list with all of the numbers
 ; removed.
 (define no-nums
     (lambda (lat)
@@ -292,7 +292,7 @@
             ((or (number? a1) (number? a2)) #f)
             (else (eq? a1 a2)))))
 
-; occur takes in an atom and a list as its arguments, and counts the number of times that atom 
+; occur takes in an atom and a list as its arguments, and counts the number of times that atom
 ; appears in the list.
 (define occur
     (lambda (a lat)
@@ -312,7 +312,7 @@
 
 ; Chapter 5: *Oh My Gawd*: It's Full of Stars
 
-; rember* works exactly like rember, except that it recurs down every list that is within the list 
+; rember* works exactly like rember, except that it recurs down every list that is within the list
 ; l.
 (define rember*
     (lambda (a l)
@@ -366,7 +366,7 @@
                 (else (cons (car l) (insertL* new old (cdr l)))))
             (else (cons (insertL* new old (car l)) (insertL* new old (cdr l)))))))
 
-; member* works exactly like member, except that it recurs down every list that is within the list 
+; member* works exactly like member, except that it recurs down every list that is within the list
 ; l.
 (define member*
     (lambda (a l)
@@ -375,7 +375,7 @@
             ((atom? (car l)) (or (eq? (car l) a) (member* a (cdr l))))
             (else (or (member* a (car l)) (member* a (cdr l)))))))
 
-; leftmost finds the leftmost atom in a non-empty list of S-expressions that does not contain the 
+; leftmost finds the leftmost atom in a non-empty list of S-expressions that does not contain the
 ; empty list.
 (define leftmost
     (lambda (l)
@@ -403,7 +403,7 @@
 
 ; Chapter 6: Shadows
 
-; numbered? determines whether a representation of an arithmetic expression contains only numbers 
+; numbered? determines whether a representation of an arithmetic expression contains only numbers
 ; besides the o+, ox, and o^.
 (define numbered?
     (lambda (aexp)
@@ -422,13 +422,13 @@
                 (o* (value (car nexp)) (value (car (cdr (cdr nexp))))))
             (else (o^ (value (car nexp)) (value (car (cdr (cdr nexp)))))))))
 
-; value-prefix works exactly like value, except that it interprets and evaluates arithmetic 
+; value-prefix works exactly like value, except that it interprets and evaluates arithmetic
 ; expressions that are written in prefix notation.
 (define value-prefix
     (lambda (nexp)
         (cond
             ((atom? nexp) nexp)
-            ((eq? (operator nexp) (quote o+)) 
+            ((eq? (operator nexp) (quote o+))
                 (o+ (value-prefix (1st-sub-exp nexp)) (value-prefix (2nd-sub-exp nexp))))
             ((eq? (operator nexp) (quote o*))
                 (o* (value-prefix (1st-sub-exp nexp)) (value-prefix (2nd-sub-exp nexp))))
@@ -449,25 +449,25 @@
     (lambda (aexp)
         (car (cdr aexp))))
 
-; sero? tests if a value passed into it is 0, using a list of empty lists in place of Arabic 
+; sero? tests if a value passed into it is 0, using a list of empty lists in place of Arabic
 ; characters to represent numbers.
 (define sero?
     (lambda (n)
         (null? n)))
 
-; edd1 adds 1 to a list provided, using a list of empty lists in place of Arabic characters to 
+; edd1 adds 1 to a list provided, using a list of empty lists in place of Arabic characters to
 ; represent numbers.
 (define edd1
     (lambda (n)
         (cons (quote ()) n)))
 
-; zub1 subtracts 1 from a list provided, using a list of empty lists in place of Arabic characters 
+; zub1 subtracts 1 from a list provided, using a list of empty lists in place of Arabic characters
 ; to represent numbers.
 (define zub1
     (lambda (n)
         (cdr n)))
 
-; lo+ works exactly like o+ when using a list of empty lists in place of Arabic characters to 
+; lo+ works exactly like o+ when using a list of empty lists in place of Arabic characters to
 ; represent numbers.
 (define lo+
     (lambda (n m)
@@ -487,8 +487,8 @@
             ((member? (car lat) (cdr lat)) #f)
             (else (set? (cdr lat))))))
 
-; makeset creates a set from a lat by remembering to cons the first atom in the lat onto the result 
-; of the natural recursion, after removing all occurrences of the first atom from the rest of the 
+; makeset creates a set from a lat by remembering to cons the first atom in the lat onto the result
+; of the natural recursion, after removing all occurrences of the first atom from the rest of the
 ; lat.
 (define makeset
     (lambda (lat)
@@ -496,7 +496,7 @@
             ((null? lat) (quote ()))
             (else (cons (car lat) (makeset (multirember (car lat) (cdr lat))))))))
 
-; subset? determines if the second set passed to it is a subset (a set where every S-expression 
+; subset? determines if the second set passed to it is a subset (a set where every S-expression
 ; within it is also within the first set) of the first set passed to it.
 (define subset?
     (lambda (set1 set2)
@@ -504,13 +504,13 @@
             ((null? set1) #t)
             (else (and (member? (car set1) set2) (subset? (cdr set1) set2))))))
 
-; eqset? determines if two sets are equal to one another, by checking if both sets are subsets of 
+; eqset? determines if two sets are equal to one another, by checking if both sets are subsets of
 ; each other.
 (define eqset?
     (lambda (set1 set2)
         (and (subset? set1 set2) (subset? set2 set1))))
 
-; intersect provides all of the elements that are present in both of the sets provided as arguments. 
+; intersect provides all of the elements that are present in both of the sets provided as arguments.
 (define intersect
     (lambda (set1 set2)
         (cond
@@ -518,7 +518,7 @@
             ((member? (car set1) set2) (cons (car set1) (intersect (cdr set1) set2)))
             (else (intersect (cdr set1) set2)))))
 
-; union creates a new set containing all of the distinct elements from the two sets passed to it as 
+; union creates a new set containing all of the distinct elements from the two sets passed to it as
 ; arguments.
 (define union
     (lambda (set1 set2)
@@ -535,7 +535,7 @@
             ((member? (car set1) set2) (difference (cdr set1) set2))
             (else (cons (car set1) (difference (cdr set1) set2)))))
 
-; intersectall works exactly like intersect, except that it finds the intersection of any number of 
+; intersectall works exactly like intersect, except that it finds the intersection of any number of
 ; sets within a list provided as its argument.
 (define intersectall
     (lambda (l-set)
@@ -604,7 +604,7 @@
 
 ; Chapter 8: Lambda the Ultimate
 
-; rember-f takes a test function that returns a boolean, an atom, and a list as arguments, and 
+; rember-f takes a test function that returns a boolean, an atom, and a list as arguments, and
 ; removes the atom a from the list l if the function test? returns true.
 (define rember-f
     (lambda (test?)
@@ -614,7 +614,7 @@
                 ((test? (car l) a) (cdr l))
                 (else (cons (car l) ((rember-f test?) a (cdr l))))))))
 
-; eq?-c takes an atom as its argument, and returns a function that also takes an atom, and 
+; eq?-c takes an atom as its argument, and returns a function that also takes an atom, and
 ; determines if the two atoms are equal.
 (define eq?-c
     (lambda (a)
@@ -639,19 +639,19 @@
                 ((test? (car l) old) (cons old (cons new (cdr l))))
                 (else (cons (car l) ((insertR-f test?) new old (cdr l))))))))
 
-; seqL conses the first argument onto the result of consing the second argument onto the third 
+; seqL conses the first argument onto the result of consing the second argument onto the third
 ; argument.
 (define seqL
     (lambda (new old l)
         (cons new (cons old l))))
 
-; seqR conses the second argument onto the result of consing the first argument onto the third 
+; seqR conses the second argument onto the result of consing the first argument onto the third
 ; argument.
 (define seqR
     (lambda (new old l)
         (cons old (cons new l))))
 
-; insert-g can either function as insertL or as insertR depending on the version of seq that it 
+; insert-g can either function as insertL or as insertR depending on the version of seq that it
 ; receives as an argument.
 (define insert-g
     (lambda (seq)
@@ -690,7 +690,7 @@
     (lambda (a l)
         ((insert-g seqrem) #f a l)))
 
-; atom-to-function returns the appropriate function based on whether the operator represents the o+, 
+; atom-to-function returns the appropriate function based on whether the operator represents the o+,
 ; o*, or o^ function.
 (define atom-to-function
     (lambda (x)
@@ -704,7 +704,7 @@
     (lambda (nexp)
         (cond
             ((atom? nexp) nexp)
-            (else ((atom-to-function (operator nexp)) 
+            (else ((atom-to-function (operator nexp))
                 (value-atf (1st-sub-exp nexp)) (value-atf (2nd-sub-exp nexp)))))))
 
 ; multirember-f works exactly the same as multirember, but now is curried.
@@ -736,7 +736,7 @@
             ((eq? (car lat) a) (multirember&co a (cdr lat)
                 (lambda (newlat seen)
                     (col newlat (cons (car lat) seen)))))
-            (else (multirember&co a (cdr lat) 
+            (else (multirember&co a (cdr lat)
                 (lambda (newlat seen)
                     (col (cons (car lat) newlat) seen)))))))
 
@@ -777,7 +777,7 @@
                     (else (evens-only* (cdr l)))))
             (else (cons (evens-only* (car l)) (evens-only* (cdr l)))))))
 
-; evens-only*&co works exactly like evens-only*, except that it also has a collector that collects 
+; evens-only*&co works exactly like evens-only*, except that it also has a collector that collects
 ; the evens, their product, and the sum of all the odd numbers in the list.
 (define evens-only*&co
     (lambda (l col)
@@ -813,7 +813,7 @@
     (lambda (x)
         (eternity x)))
 
-; shift takes a pair whose first component is a pair and builds a pair by shifting the second part 
+; shift takes a pair whose first component is a pair and builds a pair by shifting the second part
 ; of the first component into the second component.
 (define shift
     (lambda (pair)

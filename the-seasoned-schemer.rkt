@@ -46,7 +46,7 @@
             ((null? lat) #f)
             (else (two-in-a-row-b? (car lat) (cdr lat))))))
 
-; sum-of-prefixes takes a tuple as an argument, and creates a tuple consisting of the sum of all 
+; sum-of-prefixes takes a tuple as an argument, and creates a tuple consisting of the sum of all
 ; previous numbers in the original tuple up to that point.
 (define sum-of-prefixes
     (lambda (tup)
@@ -57,26 +57,26 @@
     (lambda (sonssf tup)
         (cond
             ((null? tup) (quote ()))
-            (else (cons (o+ sonssf (car tup)) 
+            (else (cons (o+ sonssf (car tup))
                 (sum-of-prefixes-b (o+ sonssf (car tup)) (cdr tup)))))))
 
 ; scramble takes a non-empty tup in which no number is greater than its own index, and returns a tup
-; of the same length. Each number in the argument is treated as a backward index from its own 
-; position to a point earlier in the tup. The result at each position is found by counting backward 
+; of the same length. Each number in the argument is treated as a backward index from its own
+; position to a point earlier in the tup. The result at each position is found by counting backward
 ; from the current position according to this index.
 (define scramble
     (lambda (tup)
         (scramble-b tup (quote ()))))
 
-; scramble-b receives a tup and the reverse of its proper prefix. If the tup is empty, it returns 
-; the empty list. Otherwise, it constructs the reverse of the complete prefix and uses the first 
-; element of tup as a backward index into this list. It then processes the rest of the tup and 
+; scramble-b receives a tup and the reverse of its proper prefix. If the tup is empty, it returns
+; the empty list. Otherwise, it constructs the reverse of the complete prefix and uses the first
+; element of tup as a backward index into this list. It then processes the rest of the tup and
 ; conses the two results together.
 (define scramble-b
     (lambda (tup rev-prev)
         (cond
             ((null? tup) (quote ()))
-            (else (cons (pick (car tup) (cons (car tup) rev-prev)) 
+            (else (cons (pick (car tup) (cons (car tup) rev-prev))
                 (scramble-b (cdr tup) (cons (car tup) rev-prev)))))))
 
 ;;--------------------------------------------------------------------------------------------------
@@ -212,8 +212,8 @@
             ((P (lambda (tup rp)
                 (cond
                     ((null? tup) (quote ()))
-                    (else 
-                        (cons 
+                    (else
+                        (cons
                             (pick (car tup) (cons (car tup) rp))
                             (P (cdr tup) (cons (car tup) rp))))))
             (P tup (quote ())))))
@@ -479,7 +479,7 @@
 
 ; Chapter 15: The Difference Between Men and Boys...
 
-; 
+;
 (set! x (quote rings))  ; First instance in chapter; set to other values for other examples.
 
 (define gourmet
@@ -595,7 +595,7 @@
 
 (define length
     (let ((h (lambda (l) 0)))
-        (set! h (L (lambda (arg) (h arg)))) 
+        (set! h (L (lambda (arg) (h arg))))
         h))
 
 (define Y!
@@ -898,7 +898,7 @@
 
 (define two-layers
     (lambda (p)
-        (cons 
+        (cons
             (cons p (quote ()))
             (quote ()))))
 
@@ -1189,7 +1189,7 @@
           (:number? (a-prim number?)))
         (lambda (e table)
             (cond
-                ((number? e) e)                
+                ((number? e) e)
                 ((eq? e #t) #t)
                 ((eq? e #f) #f)
                 ((eq? e (quote cons)) :cons)
@@ -1207,7 +1207,7 @@
     ((lambda (:cons :car :cdr :null? :eq? :atom? :zero? :add1 :sub1 :number?)
         (lambda (e table)
             (cond
-                ((number? e) e)                
+                ((number? e) e)
                 ((eq? e #t) #t)
                 ((eq? e #f) #f)
                 ((eq? e (quote cons)) :cons)
